@@ -1,0 +1,7 @@
+modified:   demo/test.ipynb
+        deleted:    demo/work/obj_acc.npy
+        modified:   projects/IDOL/configs/armbench_r101.yaml
+        modified:   projects/IDOL/configs/armbench_r101_eval.yaml
+        modified:   projects/IDOL/configs/armbench_r101_semi.yaml
+        modified:   projects/IDOL/idol/idol.py
+        modified:   projects/IDOL/idol/util/cut_paste.py
