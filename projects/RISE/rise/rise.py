@@ -164,9 +164,9 @@ class RISE(nn.Module):
         aux_loss=deep_supervision,
         with_box_refine=True )
 
-        self.detr = CondInst_segm(model, freeze_detr=False, rel_coord=True )
+        self.IDOL = CondInst_segm(model, freeze_detr=False, rel_coord=True )
         
-        self.detr.to(self.device)
+        self.IDOL.to(self.device)
 
         # building criterion
         matcher = HungarianMatcher(multi_frame=True,
@@ -204,6 +204,7 @@ class RISE(nn.Module):
         self.cp_bank = CopyPasteBank()
         self.rotation = TVT.RandomRotation(4)
         self.prespective = TVT.RandomPerspective(distortion_scale=0.3)
+
     def forward(self, batched_inputs, labeled=True,th_decay_ratio=1):
         """
         Args:
@@ -243,14 +244,14 @@ class RISE(nn.Module):
                 self.cp_bank.append(images,gt_instances)
                 det_targets,ref_targets = self.prepare_targets(gt_instances) #return instances target ids
                 
-                output, loss_dict = self.detr(images, det_targets,ref_targets, self.criterion, train=True)
+                output, loss_dict = self.IDOL(images, det_targets,ref_targets, self.criterion, train=True)
                 
             else: #create pseudo labels
                 ## prepare weak images for pseudo-labels
                 images_w= self.preprocess_image(batched_inputs)#.to(self.device)
                 with torch.no_grad():
-                    self.detr.eval()
-                    u_preds_w = self.detr.inference_forward(images_w)
+                    self.IDOL.eval()
+                    u_preds_w = self.IDOL.inference_forward(images_w)
 
                 #validation
                 gt_instances = []
@@ -269,8 +270,8 @@ class RISE(nn.Module):
                     pseudo_det_targets,pseudo_ref_targets = det_targets,ref_targets
 
                 images_s= create_strong_images(images_w)
-                self.detr.train()
-                output, loss_dict = self.detr(images_s, pseudo_det_targets,pseudo_ref_targets, self.criterion, train=True)
+                self.IDOL.train()
+                output, loss_dict = self.IDOL(images_s, pseudo_det_targets,pseudo_ref_targets, self.criterion, train=True)
                 #No supervision signal
                 if pseudo_det_targets[0]['valid'].sum()==0 or pseudo_ref_targets[0]['valid'].sum()==0:
                     pass
